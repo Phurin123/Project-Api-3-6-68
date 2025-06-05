@@ -69,7 +69,7 @@ API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # เชื่อมต่อ MongoDB
-uri = "mongodb+srv://66020981:Phurin192547@project-api.tsr0e8c.mongodb.net/?retryWrites=true&w=majority&appName=Project-API"
+uri = os.getenv("MONGO_URI")
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 # Send a ping to confirm a successful connection
