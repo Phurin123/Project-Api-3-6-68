@@ -27,7 +27,7 @@ async function generateApiKey() {
     let amount = duration * 30;
 
     try {
-        const response = await fetch("/generate_qr", {
+        const response = await fetch("https://project-api-objectxify.onrender.com/generate_qr", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
