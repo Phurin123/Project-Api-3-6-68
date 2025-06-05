@@ -9,7 +9,7 @@
         category: category
       }); // ล็อกข้อมูลที่ส่งไปเพื่อการตรวจสอบ
   
-      fetch('http://localhost:5000/report-issue', {
+      fetch('https://project-api-objectxify.onrender.com/report-issue', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json'
