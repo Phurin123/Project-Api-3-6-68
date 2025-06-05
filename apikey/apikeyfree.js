@@ -21,7 +21,7 @@ function generateApiKey() {
         return;
     }
 
-    fetch('http://localhost:5000/request-api-key', {
+    fetch('https://project-api-objectxify.onrender.com/request-api-key', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
