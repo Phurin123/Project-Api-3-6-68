@@ -92,7 +92,7 @@
       }
 
       // ส่งคำขอรีเซ็ตรหัสผ่าน
-      const res = await fetch('http://localhost:5000/reset-password', {
+      const res = await fetch('https://project-api-objectxify.onrender.com/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, password, confirm_password })
