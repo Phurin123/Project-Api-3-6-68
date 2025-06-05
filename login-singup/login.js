@@ -20,7 +20,7 @@ loginButton.addEventListener("click", async (event) => {
 
   // ส่งข้อมูลไปยัง back-end (API login)
   try {
-    let response = await fetch('http://localhost:5000/login', {
+    let response = await fetch('https://project-api-objectxify.onrender.com/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
