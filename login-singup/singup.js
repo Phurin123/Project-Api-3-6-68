@@ -77,7 +77,7 @@ document.getElementById('signupForm').addEventListener('submit', function (event
     };
 
     // ส่งข้อมูลด้วย Fetch API
-    fetch('http://localhost:5000/signup', {
+    fetch('https://project-api-objectxify.onrender.com/signup', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
