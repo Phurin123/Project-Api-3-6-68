@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('receipt', file);
 
             try {
-                const response = await fetch('http://localhost:5000/upload-receipt', {
+                const response = await fetch('https://project-api-objectxify.onrender.com/upload-receipt', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`  // 👈 แนบ JWT ตรงนี้
