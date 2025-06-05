@@ -45,7 +45,7 @@ function uploadImage() {
     reader.readAsDataURL(file);
 
     try {
-      const response = await fetch('http://localhost:5000/upload', {
+      const response = await fetch('https://project-api-objectxify.onrender.com/upload', {
         method: 'POST',
         body: formData,
       });
@@ -84,6 +84,6 @@ function uploadImage() {
 
 // ฟังก์ชันสำหรับดาวน์โหลดเอกสารคู่มือ
 function downloadManual() {
-  const url = "http://localhost:5000/manual";
+  const url = "https://project-api-objectxify.onrender.com/manual";
   window.location.href = url;
 }
