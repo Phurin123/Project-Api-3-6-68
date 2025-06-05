@@ -63,8 +63,6 @@ function fetchApiKeys() {
     });
 }
 
-
-
 // โหลดข้อมูลเมื่อเปิดหน้า
 window.onload = async function () {
     const token = localStorage.getItem('token');
@@ -76,4 +74,11 @@ window.onload = async function () {
     await fetchUsername();  // ✅ แก้ไขตรงนี้
     fetchApiKeys();
 };
+
+// ฟังก์ชันในการออกจากระบบ
+function logout() {
+    localStorage.removeItem('token'); // 🔒 ลบ token
+    window.location.href = "../login-singup/login.html"; // 🔁 ย้ายกลับหน้า login
+}
+
 
