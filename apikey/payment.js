@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // เรียก API เพื่อสร้าง QR Code ใหม่
-  fetch('http://localhost:5000/generate_qr', {
+  fetch('https://project-api-objectxify.onrender.com/generate_qr', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
