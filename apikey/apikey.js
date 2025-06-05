@@ -28,7 +28,7 @@ async function generateApiKey() {
 
     // เรียก backend เพื่อสร้าง QR และ ref_code
     try {
-        const response = await fetch("/generate_qr", {
+        const response = await fetch("https://project-api-objectxify.onrender.com/generate_qr", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
