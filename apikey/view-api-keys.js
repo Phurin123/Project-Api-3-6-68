@@ -6,7 +6,7 @@ async function fetchUsername() {
     }
 
     try {
-        const res = await fetch(`https://project-api-objectxify.onrender.com/get-username`, {
+        const res = await fetch(`http://localhost:5000/get-username`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -33,7 +33,7 @@ function fetchApiKeys() {
         return;
     }
 
-    fetch(`https://project-api-objectxify.onrender.com/get-api-keys`, {
+    fetch(`http://localhost:5000/get-api-keys`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -49,8 +49,9 @@ function fetchApiKeys() {
                     <div class="api-key">
                         <p><strong>API Key:</strong> ${key.api_key}</p>
                         <p><strong>Analysis Types:</strong> ${key.analysis_types.join(", ")}</p>
-                        <p><strong>Quota:</strong> ${key.quota}</p>
+                        <p><strong>Quota:</strong> ${key.quota === -1 ? 'ไม่จำกัดการใช้งาน' : key.quota}</p>
                         <p><strong>Threshold:</strong> ${Object.entries(key.thresholds).map(([type, val]) => `${type}: ${val}`).join(", ")}</p>
+                        ${key.expires_at ? `<p><strong>Expires At:</strong> ${new Date(key.expires_at).toLocaleString("th-TH")}</p>` : ""}
                     </div>
                 `;
             });
@@ -80,5 +81,4 @@ function logout() {
     localStorage.removeItem('token'); // 🔒 ลบ token
     window.location.href = "../login-singup/login.html"; // 🔁 ย้ายกลับหน้า login
 }
-
 
