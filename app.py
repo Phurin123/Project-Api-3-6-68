@@ -42,6 +42,7 @@ from gradio_client import Client, handle_file
 from zoneinfo import ZoneInfo
 import shutil
 import jwt
+from dateutil.relativedelta import relativedelta
 
 # การตั้งค่า Flask
 app = Flask(__name__)
@@ -234,6 +235,10 @@ def analyze_image():
         api_key_data = api_keys_collection.find_one({"api_key": api_key})
         if not api_key_data:
             return jsonify({'error': 'Invalid API Key'}), 401
+        
+        expires_at = api_key_data.get("expires_at")
+        if expires_at and datetime.now(timezone.utc) > expires_at:
+            return jsonify({'error': 'API Key expired'}), 401
 
         quota = int(api_key_data['quota'])
         if quota != -1 and quota <= 0:
@@ -399,15 +404,19 @@ def get_api_keys(current_user):
     if not email:
         return jsonify({'error': 'Email is required'}), 400
 
-    # ตรวจสอบการเชื่อมต่อฐานข้อมูล
     try:
         user = api_keys_collection.find({"email": email})
-        api_keys = list(user)  # แปลง cursor เป็น list
+        api_keys = list(user)
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
     if not api_keys:
         return jsonify({'error': 'No API keys found for this email'}), 404
+
+    # ✅ แปลง expires_at จาก datetime เป็น string
+    for key in api_keys:
+        if "expires_at" in key and isinstance(key["expires_at"], datetime):
+            key["expires_at"] = key["expires_at"].isoformat()
 
     # ส่งคืนข้อมูล API Keys ทั้งหมดของผู้ใช้ พร้อม threshold
     return jsonify({
@@ -415,7 +424,8 @@ def get_api_keys(current_user):
             'api_key': key.get('api_key', 'ไม่พบ API Key'),
             'analysis_types': key.get('analysis_types', []),
             'quota': key.get('quota', 0),
-            'thresholds': key.get('thresholds', 0.5)  # เพิ่มตรงนี้ (ค่า default = 0.5 ถ้าไม่มีใน DB)
+            'thresholds': key.get('thresholds', 0.5),  # เพิ่มตรงนี้ (ค่า default = 0.5 ถ้าไม่มีใน DB)
+            'expires_at': key.get('expires_at')
         } for key in api_keys]
     })
 
@@ -474,6 +484,7 @@ def generate_qr(current_user):
     plan = data.get('plan', 'paid')
     analysis_types = data.get('analysis_types', [])  # ต้องเป็น list
     thresholds = data.get('thresholds', {})
+    duration = int(data.get('duration', 1))
    
     # เวลาประเทศไทย
     thai_time = datetime.now(ZoneInfo("Asia/Bangkok"))
@@ -490,6 +501,7 @@ def generate_qr(current_user):
         "amount": amount,
         "quota": quota,
         "plan": plan,
+        "duration": duration,
         "analysis_types": analysis_types,
         "thresholds": thresholds,
         "paid": False,
@@ -661,8 +673,9 @@ def upload_receipt(current_user):
 
     # ตรวจสอบแผนรายเดือนเพื่อเพิ่ม expires_at
     if plan == "monthly":
-        insert_data["expires_at"] = datetime.now(timezone.utc) + timedelta(days=30)
-
+        duration = matched_order.get("duration", 1)
+        insert_data["expires_at"] = datetime.now(timezone.utc) + relativedelta(months=+duration)
+        insert_data["quota"] = -1   # ✅ ใส่ -1 เพื่อไม่จำกัดการใช้
     api_keys_collection.insert_one(insert_data)
     
     # ลบออร์เดอร์ออกจากฐานข้อมูลหลังจากสร้าง API Key แล้ว
