@@ -719,7 +719,7 @@ def upload():
         }
 
         response = requests.post(
-            "http://localhost:5000/analyze-image",
+            "https://project-api-objectxify.onrender.com/analyze-image",
             headers={"x-api-key": API_KEY},
             files=files,
             data=data
