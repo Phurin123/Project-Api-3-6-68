@@ -252,7 +252,12 @@ def analyze_image():
         filename = f"{uuid.uuid4()}.{ext}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
+        img = Image.open(file_path)
 
+        max_size = 640
+        img.thumbnail((max_size, max_size))
+        img.save(file_path)
+        
         if not is_image(file_path):
             os.remove(file_path)
             return jsonify({'error': 'Invalid image'}), 400
@@ -330,7 +335,6 @@ def analyze_image():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 # API สำหรับขอ API Key
 @app.route('/request-api-key', methods=['POST'])
