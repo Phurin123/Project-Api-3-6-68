@@ -41,13 +41,6 @@ models = {
     "violence": load_model('best-violence.pt')
 }
 
-CONFIDENCE_THRESHOLDS = {
-    "porn": 0.5,
-    "weapon": 0.5,
-    "cigarette": 0.5,
-    "violence": 0.5
-}
-
 # วิเคราะห์ภาพจาก NumPy array
 def analyze_model_np(image_np, model, threshold):
     results = model.predict(source=image_np, imgsz=640, conf=threshold, verbose=False, save=False, stream=True)
@@ -91,13 +84,12 @@ def draw_bounding_boxes_from_array(image_np, detections):
     return Image.fromarray(cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB))
 
 # ประมวลผลหลายโมเดลพร้อมกัน
-# การเรียกใช้ฟังก์ชันนี้หลังจากประมวลผลภาพ
-def process_selected_models(image, model_types):
+def process_selected_models(image, model_types, thresholds):
     image_np = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
     def run_model(model_type):
         model = models[model_type]
-        threshold = CONFIDENCE_THRESHOLDS[model_type]
+        threshold = thresholds.get(model_type, 0.5)  # ใช้ค่าที่ส่งมาจาก thresholds
         return model_type, analyze_model_np(image_np, model, threshold)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -113,9 +105,7 @@ def process_selected_models(image, model_types):
     output_image = draw_bounding_boxes_from_array(image_np.copy(), all_detections)
     json_data = json.dumps(all_detections, indent=4, ensure_ascii=False)
 
-    # คืนค่าผลลัพธ์แค่ 2 ค่า คือ รูปภาพและข้อมูล JSON
     return output_image, json_data
-
 
 
 # สร้าง Gradio Interface
@@ -127,7 +117,13 @@ interface = gr.Interface(
             choices=list(models.keys()),
             label="เลือกประเภทที่ต้องการตรวจจับ",
             value=list(models.keys())
-        )
+        ),
+        gr.JSON(label="กำหนด Thresholds", value={
+            "porn": 0.5,
+            "weapon": 0.5,
+            "cigarette": 0.5,
+            "violence": 0.5
+        })
     ],
     outputs=[
         gr.Image(type="pil", label="ผลลัพธ์พร้อมกรอบ"),
