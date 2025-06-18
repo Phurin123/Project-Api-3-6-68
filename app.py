@@ -253,10 +253,6 @@ def analyze_image():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         img = Image.open(file_path)
-
-        max_size = 640
-        img.thumbnail((max_size, max_size))
-        img.save(file_path)
         
         if not is_image(file_path):
             os.remove(file_path)
