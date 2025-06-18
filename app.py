@@ -252,8 +252,7 @@ def analyze_image():
         filename = f"{uuid.uuid4()}.{ext}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        img = Image.open(file_path)
-        
+
         if not is_image(file_path):
             os.remove(file_path)
             return jsonify({'error': 'Invalid image'}), 400
