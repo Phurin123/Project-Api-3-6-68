@@ -1,5 +1,5 @@
 // ฟังก์ชันสำหรับอัปโหลดภาพเมื่อคลิกปุ่ม "อัปโหลดรูปภาพ"
-function uploadImage() {
+async function uploadImage() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -8,16 +8,12 @@ function uploadImage() {
     const file = input.files[0];
     if (!file) return;
 
-    // 1. รวบรวมข้อมูลจาก checkbox และ input threshold
     const selectedModels = [];
     const modelThresholds = {};
 
-    // ตรวจสอบว่า checkbox โมเดลไหนถูกเลือกไว้บ้าง
     document.querySelectorAll('input[name="analysis"]:checked').forEach(checkbox => {
       const model = checkbox.value;
       selectedModels.push(model);
-
-      // ดึงค่า threshold ที่ผู้ใช้กรอกสำหรับโมเดลนี้
       const thresholdInput = document.getElementById(`${model}-threshold`);
       const thresholdValue = parseFloat(thresholdInput.value) || 0.5;
       modelThresholds[model] = thresholdValue;
@@ -45,8 +41,11 @@ function uploadImage() {
     reader.readAsDataURL(file);
 
     try {
-      const response = await fetch('https://project-api-objectxify.onrender.com/upload', {
+      const response = await fetch('https://project-api-objectxify.onrender.com/analyze-image', {
         method: 'POST',
+        headers: {
+          'x-api-key': '96e378b0-9db1-4c14-9e0e-12c9ed866d04'  // <--- เพิ่ม API Key ที่ถูกต้องของคุณตรงนี้
+        },
         body: formData,
       });
 
