@@ -701,34 +701,6 @@ api_keys_collection.create_index(
     expireAfterSeconds=0
 )
 
-@app.route("/upload", methods=["POST"])
-def upload():
-    try:
-        file = request.files['image']
-        analysis_types = request.form.get('analysis_types')  # JSON string
-        thresholds = request.form.get('thresholds')          # JSON string
-
-        files = {
-            'image': (file.filename, file.stream, file.mimetype)
-        }
-
-        data = {
-            'analysis_types': analysis_types,
-            'thresholds': thresholds
-        }
-
-        response = requests.post(
-            "https://project-api-objectxify.onrender.com/analyze-image",
-            headers={"x-api-key": API_KEY},
-            files=files,
-            data=data
-        )
-
-        return (response.text, response.status_code, response.headers.items())
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route('/auth/google')
 def auth_google():
     google_auth_url = (
@@ -736,7 +708,8 @@ def auth_google():
         f"client_id={GOOGLE_CLIENT_ID}&"
         f"redirect_uri={GOOGLE_REDIRECT_URI}&"
         f"response_type=code&"
-        f"scope=openid email profile"
+        f"scope=openid email profile&"
+        f"prompt=select_account"
     )
     return redirect(google_auth_url)
  
