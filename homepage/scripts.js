@@ -1,6 +1,5 @@
 // ฟังก์ชันสำหรับอัปโหลดภาพเมื่อคลิกปุ่ม "อัปโหลดรูปภาพ"
-// ฟังก์ชันสำหรับอัปโหลดภาพเมื่อคลิกปุ่ม "อัปโหลดรูปภาพ"
-async function uploadImage() {
+function uploadImage() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -9,12 +8,16 @@ async function uploadImage() {
     const file = input.files[0];
     if (!file) return;
 
+    // 1. รวบรวมข้อมูลจาก checkbox และ input threshold
     const selectedModels = [];
     const modelThresholds = {};
 
+    // ตรวจสอบว่า checkbox โมเดลไหนถูกเลือกไว้บ้าง
     document.querySelectorAll('input[name="analysis"]:checked').forEach(checkbox => {
       const model = checkbox.value;
       selectedModels.push(model);
+
+      // ดึงค่า threshold ที่ผู้ใช้กรอกสำหรับโมเดลนี้
       const thresholdInput = document.getElementById(`${model}-threshold`);
       const thresholdValue = parseFloat(thresholdInput.value) || 0.5;
       modelThresholds[model] = thresholdValue;
@@ -42,12 +45,9 @@ async function uploadImage() {
     reader.readAsDataURL(file);
 
     try {
-      const response = await fetch('http://localhost:5000/analyze-image', {
+      const response = await fetch('https://project-api-objectxify.onrender.com/upload', {
         method: 'POST',
-        headers: {
-          'x-api-key': '96e378b0-9db1-4c14-9e0e-12c9ed866d04'  // 🔐 เปลี่ยนเป็นค่า API Key จริง
-        },
-        body: formData
+        body: formData,
       });
 
       const data = await response.json();
@@ -84,6 +84,6 @@ async function uploadImage() {
 
 // ฟังก์ชันสำหรับดาวน์โหลดเอกสารคู่มือ
 function downloadManual() {
-  const url = "http://localhost:5000/manual";
+  const url = "https://project-api-objectxify.onrender.com/manual";
   window.location.href = url;
 }
