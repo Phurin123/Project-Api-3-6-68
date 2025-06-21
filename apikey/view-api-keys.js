@@ -1,3 +1,17 @@
+// ฟังก์ชันดึง token จาก URL (กรณี login ด้วย Google แล้ว redirect มากับ ?token=...)
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+        localStorage.setItem('token', token);
+
+        // ลบ token จาก URL หลังเก็บ
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+})();
+
+// ฟังก์ชันดึงชื่อผู้ใช้จาก token
 async function fetchUsername() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -6,7 +20,7 @@ async function fetchUsername() {
     }
 
     try {
-        const res = await fetch(`https://project-api-objectxify.onrender.com/get-username`, {
+        const res = await fetch(`http://localhost:5000/get-username`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -24,7 +38,6 @@ async function fetchUsername() {
     }
 }
 
-
 // ฟังก์ชันในการดึงข้อมูล API Keys ของผู้ใช้
 function fetchApiKeys() {
     const token = localStorage.getItem('token');
@@ -33,7 +46,7 @@ function fetchApiKeys() {
         return;
     }
 
-    fetch(`https://project-api-objectxify.onrender.com/get-api-keys`, {
+    fetch(`http://localhost:5000/get-api-keys`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -72,13 +85,12 @@ window.onload = async function () {
         return;
     }
 
-    await fetchUsername();  // ✅ แก้ไขตรงนี้
-    fetchApiKeys();
+    await fetchUsername();  // ✅ โหลดชื่อผู้ใช้
+    fetchApiKeys();         // ✅ โหลด API keys
 };
 
 // ฟังก์ชันในการออกจากระบบ
 function logout() {
     localStorage.removeItem('token'); // 🔒 ลบ token
-    window.location.href = "../login-singup/login.html"; // 🔁 ย้ายกลับหน้า login
+    window.location.href = "../login-singup/login.html"; // 🔁 กลับไปหน้า login
 }
-
