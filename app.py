@@ -701,6 +701,34 @@ api_keys_collection.create_index(
     expireAfterSeconds=0
 )
 
+@app.route("/upload", methods=["POST"])
+def upload():
+    try:
+        file = request.files['image']
+        analysis_types = request.form.get('analysis_types')  # JSON string
+        thresholds = request.form.get('thresholds')          # JSON string
+
+        files = {
+            'image': (file.filename, file.stream, file.mimetype)
+        }
+
+        data = {
+            'analysis_types': analysis_types,
+            'thresholds': thresholds
+        }
+
+        response = requests.post(
+            "https://project-api-objectxify.onrender.com/analyze-image",
+            headers={"x-api-key": API_KEY},
+            files=files,
+            data=data
+        )
+
+        return (response.text, response.status_code, response.headers.items())
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/auth/google')
 def auth_google():
     google_auth_url = (
@@ -708,8 +736,7 @@ def auth_google():
         f"client_id={GOOGLE_CLIENT_ID}&"
         f"redirect_uri={GOOGLE_REDIRECT_URI}&"
         f"response_type=code&"
-        f"scope=openid email profile&"
-        f"prompt=select_account"
+        f"scope=openid email profile"
     )
     return redirect(google_auth_url)
  
@@ -718,7 +745,7 @@ def google_callback():
     code = request.args.get('code')
     if not code:
         return jsonify({'error': 'Authorization code not found'}), 400
-
+ 
     # แลกเปลี่ยน code เป็น access token
     token_url = "https://oauth2.googleapis.com/token"
     token_data = {
@@ -730,34 +757,29 @@ def google_callback():
     }
     token_response = requests.post(token_url, data=token_data)
     token_json = token_response.json()
-
+ 
     access_token = token_json.get('access_token')
     id_token = token_json.get('id_token')
-
-    # ดึงข้อมูลผู้ใช้
+ 
+    # ดึงข้อมูลโปรไฟล์ผู้ใช้
     user_info_url = "https://www.googleapis.com/oauth2/v1/userinfo"
     user_info_response = requests.get(user_info_url, headers={'Authorization': f'Bearer {access_token}'})
     user_info = user_info_response.json()
-
+ 
+    # ตรวจสอบว่าผู้ใช้อยู่ในระบบหรือยัง
     email = user_info.get('email')
     user = users_collection.find_one({"email": email})
-
-    if user:
-        # ✅ ถ้าผู้ใช้เคยสมัครด้วย password → ให้ login ได้ด้วย Google
-        # แต่ควรระวัง: ถ้าจะ strict ต้องป้องกันตรงนี้ด้วย
-        token = generate_token(email)
-    else:
-        # สมัครใหม่ด้วย Google
+    if not user:
+        # หากผู้ใช้ยังไม่มีในระบบ ให้เพิ่มเข้าไป
         users_collection.insert_one({
             "email": email,
             "username": user_info.get('name'),
-            "password": None  # ไม่มีรหัสผ่านเพราะใช้ Google
+            "password": None  # ไม่มีรหัสผ่านเพราะล็อกอินด้วย Google
         })
-        token = generate_token(email)
-
-    # redirect ไป frontend พร้อมส่ง token
-    return redirect(f'/apikey/view-api-keys.html?email={email}&token={token}')
-
+ 
+    # เปลี่ยนเส้นทางไปยัง plan.html
+    return redirect(f'/apikey/view-api-keys.html?email={email}')
+ 
 # สร้าง OTP และส่งอีเมล
 @app.route('/reset-request', methods=['POST'])
 @token_required
