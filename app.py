@@ -182,9 +182,8 @@ def login():
         return jsonify({'error': 'User not found'}), 404
 
     if user.get('password') is None:
-        # Login with Google
-        token = generate_token(email)
-        return jsonify({'message': 'Login successful with Google', 'token': token}), 200
+        # บัญชีนี้ล็อกอินด้วย Google เท่านั้น
+        return jsonify({'error': 'This account uses Google login only. Please login with Google.'}), 400
 
     if not check_password_hash(user['password'], password):
         return jsonify({'error': 'Incorrect password'}), 400
@@ -192,7 +191,6 @@ def login():
     token = generate_token(email)
     return jsonify({'message': 'Login successful', 'token': token}), 200
 
- 
 # โฟลเดอร์สำหรับอัปโหลด
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
