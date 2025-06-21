@@ -745,7 +745,7 @@ def google_callback():
     code = request.args.get('code')
     if not code:
         return jsonify({'error': 'Authorization code not found'}), 400
- 
+
     # แลกเปลี่ยน code เป็น access token
     token_url = "https://oauth2.googleapis.com/token"
     token_data = {
@@ -757,28 +757,28 @@ def google_callback():
     }
     token_response = requests.post(token_url, data=token_data)
     token_json = token_response.json()
- 
+
     access_token = token_json.get('access_token')
-    id_token = token_json.get('id_token')
- 
+
     # ดึงข้อมูลโปรไฟล์ผู้ใช้
     user_info_url = "https://www.googleapis.com/oauth2/v1/userinfo"
     user_info_response = requests.get(user_info_url, headers={'Authorization': f'Bearer {access_token}'})
     user_info = user_info_response.json()
- 
-    # ตรวจสอบว่าผู้ใช้อยู่ในระบบหรือยัง
+
     email = user_info.get('email')
     user = users_collection.find_one({"email": email})
     if not user:
-        # หากผู้ใช้ยังไม่มีในระบบ ให้เพิ่มเข้าไป
         users_collection.insert_one({
             "email": email,
             "username": user_info.get('name'),
             "password": None  # ไม่มีรหัสผ่านเพราะล็อกอินด้วย Google
         })
- 
-    # เปลี่ยนเส้นทางไปยัง plan.html
-    return redirect(f'/apikey/view-api-keys.html?email={email}')
+
+    # สร้าง JWT token ให้ user
+    token = generate_token(email)
+
+    # ส่ง token กลับไปหน้า frontend ผ่าน query string
+    return redirect(f'/apikey/view-api-keys.html?token={token}')
  
 # สร้าง OTP และส่งอีเมล
 @app.route('/reset-request', methods=['POST'])
