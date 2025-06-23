@@ -20,7 +20,7 @@ async function fetchUsername() {
     }
 
     try {
-        const res = await fetch(`http://localhost:5000/get-username`, {
+        const res = await fetch(`https://project-api-objectxify.onrender.com/get-username`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -46,7 +46,7 @@ function fetchApiKeys() {
         return;
     }
 
-    fetch(`http://localhost:5000/get-api-keys`, {
+    fetch(`https://project-api-objectxify.onrender.com/get-api-keys`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
