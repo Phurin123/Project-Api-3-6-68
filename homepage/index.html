@@ -22,8 +22,14 @@
       <button class="api-btn">🔑 ขอ API Key</button>
     </a>
   </div>
-  <div class="model-select-group">
-  <h3>🧠 เลือกโมเดลและ Confidence Threshold:</h3>
+ <div class="model-select-group">
+  <h3>
+  🧠 เลือกโมเดลและ Confidence Threshold
+  <span class="info-tooltip">
+    ℹ️
+    <span class="tooltip-text">Confidence Threshold คือค่าความเชื่อมั่นขั้นต่ำที่ AI ต้องมีในการตัดสินว่าวัตถุที่พบเป็นวัตถุจริง ๆ หากตั้งค่าสูง ระบบจะตรวจจับเฉพาะวัตถุที่มั่นใจมากเท่านั้น</span>
+  </span>
+</h3>
 
   <label>
     <input type="checkbox" name="analysis" value="porn"> 🔞 ภาพลามก
@@ -47,9 +53,16 @@
     <input type="checkbox" name="analysis" value="violence"> 🩸 ความรุนแรง
     <input type="range" id="violence-threshold" min="0" max="1" step="0.01" value="0.5" oninput="updateThreshold('violence')">
     <span id="violence-threshold-value">0.50</span>
-  </label>
-</div>
+  </label><br>
 
+  <!-- ✅ เพิ่มปุ่มระดับความเข้มงวดไว้ตรงนี้ -->
+  <div class="threshold-presets" style="margin-top: 10px;">
+    <label>🎯 เลือกระดับความเข้มงวด:</label><br>
+    <button onclick="setThresholdLevel(0.3)">🔹 ต่ำ </button>
+    <button onclick="setThresholdLevel(0.5)">🔸 ปานกลาง </button>
+    <button onclick="setThresholdLevel(0.7)">🔺 สูง </button>
+  </div>
+</div>
 
   <section class="description">
     <h2>🔍 เกี่ยวกับ Objexify</h2>
@@ -78,12 +91,22 @@
     <button class="footer-btn" onclick="window.open('../report-page/reportissue.html', '_blank')">📩 รายงานปัญหา</button>
     <button class="footer-btn" onclick="downloadManual()">📖 ดาวน์โหลดคู่มือ</button>
   </footer>
-  <script>
-    function updateThreshold(model) {
+ <script>
+  function updateThreshold(model) {
     const value = document.getElementById(`${model}-threshold`).value;
     document.getElementById(`${model}-threshold-value`).textContent = parseFloat(value).toFixed(2);
   }
-  </script>
+
+  function setThresholdLevel(value) {
+    const models = ['porn', 'weapon', 'cigarette', 'violence'];
+    models.forEach(model => {
+      const slider = document.getElementById(`${model}-threshold`);
+      const display = document.getElementById(`${model}-threshold-value`);
+      slider.value = value;
+      display.textContent = value.toFixed(2);
+    });
+  }
+</script>
 
   <!-- เรียกใช้ไฟล์ JavaScript ของคุณ -->
   <script src="/homepage/partcles-html.js"></script> <!-- ไฟล์ JavaScript -->
