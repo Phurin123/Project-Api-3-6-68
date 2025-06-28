@@ -224,6 +224,18 @@ def delete_file(file_path):
         print(f"Deleted file: {file_path}")
     except Exception as e:
         print(f"Error deleting file: {e}")
+     
+# ฟังก์ชันสำหรับลบไฟล์ทุกไฟลืใน folder upload
+def delete_all_files_in_upload_folder():
+    folder = app.config['UPLOAD_FOLDER']
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        if os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+                print(f"Deleted file: {file_path}")
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
 
 # API วิเคราะห์ภาพ
 @app.route('/analyze-image', methods=['POST'])
@@ -291,12 +303,18 @@ def analyze_image():
         )
 
         output_image = result[0]
+        blurred_output = result[1]
         detection_data = json.loads(result[2])
 
-        # บันทึกไฟล์ผลลัพธ์
+        # บันทึกไฟล์ผลลัพธ์ ภาพ bounding box
         processed_filename = f"processed_{uuid.uuid4()}.jpg"
         processed_path = os.path.join(app.config['UPLOAD_FOLDER'], processed_filename)
-
+     
+        # บันทึกไฟล์ผลลัพธ์ ภาพเบลอ
+        blurred_filename = f"blurred_{uuid.uuid4()}.jpg"
+        blurred_path = os.path.join(app.config['UPLOAD_FOLDER'], blurred_filename)
+     
+        # บันทึกภาพ bounding box
         if isinstance(output_image, str) and os.path.exists(output_image):
             shutil.copy(output_image, processed_path)
         elif isinstance(output_image, Image.Image):
@@ -305,7 +323,19 @@ def analyze_image():
             with open(processed_path, 'wb') as f:
                 f.write(output_image)
 
+        # บันทึกภาพเบลอ
+        if isinstance(blurred_output, str) and os.path.exists(blurred_output):
+            shutil.copy(blurred_output, blurred_path)
+        elif isinstance(blurred_output, Image.Image):
+            blurred_output.save(blurred_path)
+        else:
+            with open(blurred_path, 'wb') as f:
+                f.write(blurred_output)
+             
+        # สร้าง URL สำหรับภาพ bounding box
         image_url = url_for('uploaded_file', filename=processed_filename, _external=True)
+        # สร้าง URL สำหรับภาพเบลอ
+        blurred_image_url = url_for('uploaded_file', filename=blurred_filename, _external=True)
 
         # ประเมินสถานะภาพตาม threshold
         status = "passed"
@@ -316,7 +346,7 @@ def analyze_image():
                 break
 
         os.remove(file_path)
-        threading.Timer(10, delete_file, args=[processed_path]).start()
+        threading.Timer(20, delete_all_files_in_upload_folder).start()
 
         if quota != -1:
             api_keys_collection.update_one(
@@ -327,7 +357,8 @@ def analyze_image():
         return jsonify({
             "status": status,
             "detections": detection_data,
-            "processed_image_url": image_url
+            "processed_image_url": image_url,
+            "processed_blurred_image_url": blurred_image_url
         })
 
     except Exception as e:
