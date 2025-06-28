@@ -235,8 +235,12 @@ def analyze_image():
             return jsonify({'error': 'Invalid API Key'}), 401
         
         expires_at = api_key_data.get("expires_at")
-        if expires_at and datetime.now(timezone.utc) > expires_at:
-            return jsonify({'error': 'API Key expired'}), 401
+        if expires_at:
+            # สมมติ expires_at เป็น datetime naive ให้แปลงเป็น aware ด้วย UTC
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if datetime.now(timezone.utc) > expires_at:
+                return jsonify({'error': 'API Key expired'}), 401
 
         quota = int(api_key_data['quota'])
         if quota != -1 and quota <= 0:
