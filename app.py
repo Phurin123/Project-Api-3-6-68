@@ -287,7 +287,7 @@ def analyze_image():
         )
 
         output_image = result[0]
-        detection_data = json.loads(result[1])
+        detection_data = json.loads(result[2])
 
         # บันทึกไฟล์ผลลัพธ์
         processed_filename = f"processed_{uuid.uuid4()}.jpg"
