@@ -317,3 +317,87 @@ button:hover {
     max-height: 250px;
   }
 }
+
+.threshold-presets {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.threshold-presets label {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: block;
+  color: #fffafa;
+}
+
+.threshold-presets button {
+  margin: 8px;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, #3f51b5, #5c6bc0); /* โทนม่วงน้ำเงิน */
+  transition: transform 0.2s, box-shadow 0.3s, background 0.3s;
+}
+
+.threshold-presets button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(63, 81, 181, 0.4);
+  background: linear-gradient(135deg, #3949ab, #3f51b5);
+}
+
+.info-tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 18px;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  background-color: #333;
+  color: #fff;
+  direction: ltr !important;
+  text-align: left !important;
+  border-radius: 8px;
+  padding: 12px 16px;
+  position: absolute;
+  z-index: 9999;
+  bottom: 140%; /* ลอยขึ้นเหนือปุ่ม */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 90vw; /* ไม่เกิน 90% ความกว้าง viewport */
+  min-width: 200px; /* กว้างขั้นต่ำ */
+  width: max-content; /* ขยายตามข้อความ */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  word-wrap: break-word;
+  white-space: normal; /* พับบรรทัดได้ */
+  pointer-events: none; /* ไม่ขวางเมาส์ */
+}
+
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* ลูกศรชี้ลง */
+  left: 50%;
+  margin-left: -6px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.info-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto; /* เปิดเมาส์ได้เมื่อโชว์ */
+}
+
