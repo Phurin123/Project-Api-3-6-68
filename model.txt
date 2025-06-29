@@ -41,7 +41,7 @@ models = {
 # วิเคราะห์ภาพจาก NumPy array
 def analyze_model_np(image_np, model, threshold):
     # เพิ่ม device='cuda' ถ้าใช้ GPU
-    results = model.predict(source=image_np, imgsz=640, device='cpu', conf=threshold, verbose=False, save=False, stream=True)
+    results = model.predict(source=image_np, imgsz=640, device='cpu', conf=threshold, verbose=False, save=False, stream=False)
     detections = []
     for result in results:
         if not hasattr(result, 'boxes') or result.boxes is None:
