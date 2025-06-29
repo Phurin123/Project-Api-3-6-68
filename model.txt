@@ -6,9 +6,6 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 import concurrent.futures
-import shutil
-import uuid
-from flask import Flask, jsonify, request, url_for
 import threading
 import time
 
@@ -43,7 +40,8 @@ models = {
 
 # วิเคราะห์ภาพจาก NumPy array
 def analyze_model_np(image_np, model, threshold):
-    results = model.predict(source=image_np, imgsz=640, conf=threshold, verbose=False, save=False, stream=True)
+    # เพิ่ม device='cuda' ถ้าใช้ GPU
+    results = model.predict(source=image_np, imgsz=640, device='cpu', conf=threshold, verbose=False, save=False, stream=True)
     detections = []
     for result in results:
         if not hasattr(result, 'boxes') or result.boxes is None:
@@ -61,7 +59,7 @@ def analyze_model_np(image_np, model, threshold):
                 })
     return detections
 
-# วาดกรอบ
+# วาดกรอบ bounding box
 def draw_bounding_boxes_from_array(image_np, detections):
     for detection in detections:
         x1, y1, x2, y2 = map(int, detection["bbox"])
@@ -83,13 +81,28 @@ def draw_bounding_boxes_from_array(image_np, detections):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
     return Image.fromarray(cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB))
 
-# ประมวลผลหลายโมเดลพร้อมกัน
+# เบลอเฉพาะส่วนที่ตรวจจับเจอ
+def blur_detected_areas(image_np, detections, blur_ksize=(51, 51)):
+    blurred_image = image_np.copy()
+    for detection in detections:
+        x1, y1, x2, y2 = map(int, detection["bbox"])
+        h, w = blurred_image.shape[:2]
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(w-1, x2), min(h-1, y2)
+        roi = blurred_image[y1:y2, x1:x2]
+        if roi.size == 0:
+            continue
+        roi_blurred = cv2.GaussianBlur(roi, blur_ksize, 0)
+        blurred_image[y1:y2, x1:x2] = roi_blurred
+    return Image.fromarray(cv2.cvtColor(blurred_image, cv2.COLOR_BGR2RGB))
+
+# ประมวลผลหลายโมเดลพร้อมกัน และคืนภาพ 2 แบบ + JSON
 def process_selected_models(image, model_types, thresholds):
     image_np = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
     def run_model(model_type):
         model = models[model_type]
-        threshold = thresholds.get(model_type, 0.5)  # ใช้ค่าที่ส่งมาจาก thresholds
+        threshold = thresholds.get(model_type, 0.5)
         return model_type, analyze_model_np(image_np, model, threshold)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -102,11 +115,11 @@ def process_selected_models(image, model_types, thresholds):
             d['model_type'] = model_type
         all_detections.extend(detections)
 
-    output_image = draw_bounding_boxes_from_array(image_np.copy(), all_detections)
+    output_image_bbox = draw_bounding_boxes_from_array(image_np.copy(), all_detections)
+    output_image_blur = blur_detected_areas(image_np.copy(), all_detections)
     json_data = json.dumps(all_detections, indent=4, ensure_ascii=False)
 
-    return output_image, json_data
-
+    return output_image_bbox, output_image_blur, json_data
 
 # สร้าง Gradio Interface
 interface = gr.Interface(
@@ -126,7 +139,8 @@ interface = gr.Interface(
         })
     ],
     outputs=[
-        gr.Image(type="pil", label="ผลลัพธ์พร้อมกรอบ"),
+        gr.Image(type="pil", label="ภาพพร้อมกรอบ bounding box"),
+        gr.Image(type="pil", label="ภาพเบลอส่วนที่ตรวจจับเจอ"),
         gr.Textbox(label="ผลลัพธ์ JSON", lines=20, interactive=False)
     ],
     title="YOLO Image Content Detector",
